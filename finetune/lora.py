@@ -44,6 +44,7 @@ lora_alpha = 16
 lora_dropout = 0.05
 warmup_iters = 100
 
+fabric = L.Fabric()
 
 def main(
     data_dir: str = "data/alpaca", 
@@ -51,9 +52,6 @@ def main(
     tokenizer_path: str = "checkpoints/lit-llama/tokenizer.model",
     out_dir: str = "out/lora/alpaca",
 ):
-
-    fabric = L.Fabric(accelerator="cuda", devices=1, precision="bf16-true")
-    fabric.launch()
     fabric.seed_everything(1337 + fabric.global_rank)
 
     if fabric.global_rank == 0:
@@ -166,11 +164,11 @@ def validate(fabric: L.Fabric, model: torch.nn.Module, val_data: np.ndarray, tok
     out = losses.mean()
 
     # produce an example:
-    instruction = "Recommend a movie for me to watch during the weekend and explain the reason."
+#    instruction = "Recommend a movie for me to watch during the weekend and explain the reason."
     
-    output = generate_response(model, instruction, tokenizer_path)
-    fabric.print(instruction)
-    fabric.print(output)
+#    output = generate_response(model, instruction, tokenizer_path)
+#    fabric.print(instruction)
+#    fabric.print(output)
 
     model.train()
     return out.item()

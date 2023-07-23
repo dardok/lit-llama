@@ -32,7 +32,7 @@ eval_interval = 1000
 save_interval = 1000
 eval_iters = 100
 log_interval = 100
-devices = 4
+devices = 16
 
 # Hyperparameters
 learning_rate = 3e-5
@@ -47,18 +47,16 @@ weight_decay = 0.0
 block_size = 512
 warmup_iters = 100
 
+auto_wrap_policy = partial(transformer_auto_wrap_policy, transformer_layer_cls={Block})
+strategy = FSDPStrategy(auto_wrap_policy=auto_wrap_policy, activation_checkpointing=Block, limit_all_gathers=True)
+
+fabric = L.Fabric(accelerator="cuda", devices=devices, precision="bf16-mixed", strategy=strategy)
 
 def main(
     data_dir: str = "data/alpaca",
     pretrained_path: str = "checkpoints/lit-llama/7B/lit-llama.pth",
     out_dir: str = "out/full/alpaca",
 ):
-
-    auto_wrap_policy = partial(transformer_auto_wrap_policy, transformer_layer_cls={Block})
-    strategy = FSDPStrategy(auto_wrap_policy=auto_wrap_policy, activation_checkpointing=Block, limit_all_gathers=True)
-
-    fabric = L.Fabric(accelerator="cuda", devices=devices, precision="bf16-mixed", strategy=strategy)
-    fabric.launch()
     fabric.seed_everything(1337 + fabric.global_rank)
 
     if fabric.global_rank == 0:
@@ -171,11 +169,11 @@ def validate(fabric: L.Fabric, model: torch.nn.Module, val_data: np.ndarray) -> 
     out = losses.mean()
 
     # produce an example:
-    instruction = "Recommend a movie for me to watch during the weekend and explain the reason."
+#    instruction = "Recommend a movie for me to watch during the weekend and explain the reason."
     
-    output = generate_response(model, instruction)
-    fabric.print(instruction)
-    fabric.print(output)
+#    output = generate_response(model, instruction)
+#    fabric.print(instruction)
+#    fabric.print(output)
 
     model.train()
     return out.item()

@@ -42,7 +42,7 @@ eval_interval = 600
 save_interval = 1000
 eval_iters = 100
 log_interval = 1
-devices = 1
+devices = 16
 
 # Hyperparameters
 learning_rate = 9e-3
@@ -63,20 +63,13 @@ ds_config = {
     "zero_optimization": {"stage": 2},
 }
 
+fabric = L.Fabric(strategy=(DeepSpeedStrategy(config=ds_config) if devices > 1 else "auto"))
 
 def main(
     data_dir: str = "data/alpaca", 
     pretrained_path: str = "checkpoints/lit-llama/7B/lit-llama.pth",
     out_dir: str = "out/adapter_v2/alpaca",
 ):
-
-    fabric = L.Fabric(
-        accelerator="cuda",
-        devices=1,
-        strategy=(DeepSpeedStrategy(config=ds_config) if devices > 1 else "auto"),
-        precision="bf16-true",
-    )
-    fabric.launch()
     fabric.seed_everything(1337 + fabric.global_rank)
 
     if fabric.global_rank == 0:
@@ -192,10 +185,10 @@ def validate(fabric: L.Fabric, model: torch.nn.Module, val_data: np.ndarray) -> 
     val_loss = losses.mean()
 
     # produce an example:
-    instruction = "Recommend a movie for me to watch during the weekend and explain the reason."
-    output = generate_response(model, instruction)
-    fabric.print(instruction)
-    fabric.print(output)
+#    instruction = "Recommend a movie for me to watch during the weekend and explain the reason."
+#    output = generate_response(model, instruction)
+#    fabric.print(instruction)
+#    fabric.print(output)
 
     model.train()
     return val_loss.item()
