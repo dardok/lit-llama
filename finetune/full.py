@@ -50,7 +50,7 @@ warmup_iters = 100
 auto_wrap_policy = partial(transformer_auto_wrap_policy, transformer_layer_cls={Block})
 strategy = FSDPStrategy(auto_wrap_policy=auto_wrap_policy, activation_checkpointing=Block, limit_all_gathers=True)
 
-fabric = L.Fabric(accelerator="cuda", devices=devices, precision="bf16-mixed", strategy=strategy)
+fabric = L.Fabric(strategy=strategy)
 
 def main(
     data_dir: str = "data/alpaca",
